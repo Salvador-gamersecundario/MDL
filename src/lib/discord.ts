@@ -20,6 +20,35 @@ interface DiscordEmbed {
   timestamp?: string;
 }
 
+async function sendDiscordNotification(embed: DiscordEmbed) {
+    const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+    if (!webhookUrl) {
+        console.error('Discord webhook URL is not configured.');
+        return;
+    }
+     try {
+        const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            username: "Registros MDL",
+            avatar_url: "https://raw.githubusercontent.com/Luisfont13/img/main/1.png",
+            embeds: [embed],
+        }),
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.text();
+            console.error(`Failed to send Discord notification. Status: ${response.status}. Body: ${errorBody}`);
+        }
+    } catch (error) {
+        console.error('Error sending Discord notification:', error);
+    }
+}
+
+
 export async function sendPurchaseNotification(
   username: string,
   userAvatar: string | undefined,
@@ -27,16 +56,8 @@ export async function sendPurchaseNotification(
   itemPrice: number,
   newBalance: number
 ) {
-  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
-
-  if (!webhookUrl) {
-    console.error('Discord webhook URL is not configured.');
-    // No lanzamos un error para no romper la compra si solo falla la notificación
-    return;
-  }
-
   const embed: DiscordEmbed = {
-    color: 0x57f287, // Color verde
+    color: 0x57f287, // Verde
     title: '✅ Nueva Compra Realizada',
     author: {
       name: username,
@@ -53,25 +74,30 @@ export async function sendPurchaseNotification(
       icon_url: 'https://raw.githubusercontent.com/Luisfont13/img/main/1.png',
     },
   };
+  await sendDiscordNotification(embed);
+}
 
-  try {
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        username: "Registro de Compras",
-        avatar_url: "https://raw.githubusercontent.com/Luisfont13/img/main/1.png",
-        embeds: [embed],
-      }),
-    });
 
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error(`Failed to send Discord notification. Status: ${response.status}. Body: ${errorBody}`);
-    }
-  } catch (error) {
-    console.error('Error sending Discord notification:', error);
-  }
+export async function sendAdminNotification(
+  adminName: string,
+  targetUserId: string,
+  amount: number,
+  finalBalance: number
+) {
+  const embed: DiscordEmbed = {
+    color: 0xf1c40f, // Amarillo/Dorado
+    title: '🛠️ Acción Administrativa: Monedas Añadidas',
+    fields: [
+      { name: 'Administrador', value: adminName, inline: true },
+      { name: 'Usuario Afectado', value: `<@${targetUserId}>`, inline: false },
+      { name: 'Monedas Añadidas', value: `+${amount.toLocaleString()}`, inline: true },
+      { name: 'Nuevo Saldo', value: `${finalBalance.toLocaleString()}`, inline: true },
+    ],
+    timestamp: new Date().toISOString(),
+    footer: {
+      text: 'Panel de Administración',
+      icon_url: 'https://raw.githubusercontent.com/Luisfont13/img/main/1.png',
+    },
+  };
+  await sendDiscordNotification(embed);
 }
