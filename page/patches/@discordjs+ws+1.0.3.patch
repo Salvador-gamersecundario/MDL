@@ -1,0 +1,28 @@
+diff --git a/node_modules/@discordjs/ws/dist/index.js b/node_modules/@discordjs/ws/dist/index.js
+index 93859d0..f18a666 100644
+--- a/node_modules/@discordjs/ws/dist/index.js
++++ b/node_modules/@discordjs/ws/dist/index.js
+@@ -570,7 +570,7 @@
+ var InflateContext = class {
+ };
+ 
+-// src/ws/WebSocketShard.ts
+-var getZlibSync = (0, import_util2.lazy)(async () => import("zlib-sync").then((mod) => mod.default).catch(() => null));
++// src/ws/WebSocketShard.ts
++var getZlibSync = (0, import_util2.lazy)(async () => Promise.resolve(null));
+ var WebSocketShardEvents = /* @__PURE__ */ ((WebSocketShardEvents2) => {
+   WebSocketShardEvents2["Closed"] = "closed";
+   WebSocketShardEvents2["Debug"] = "debug";
+diff --git a/node_modules/@discordjs/ws/package.json b/node_modules/@discordjs/ws/package.json
+index 379c67b..5626a5c 100644
+--- a/node_modules/@discordjs/ws/package.json
++++ b/node_modules/@discordjs/ws/package.json
+@@ -37,7 +37,7 @@
+     "undici": "^5.28.3"
+   },
+   "peerDependenciesMeta": {
+-    "zlib-sync": {
++    "zlib-sync": {
+       "optional": true
+     }
+   },
