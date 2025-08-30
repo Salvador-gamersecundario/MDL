@@ -1,7 +1,9 @@
-"use server";
 
 import { sendAdminNotification } from "@/lib/discord";
 import { getDb } from "@/lib/firebase";
+
+// "use server" directive is removed to allow static export.
+// This file will not be functional in a static environment.
 
 const ADMIN_USER_ID = "1201985296011366430";
 
@@ -11,6 +13,7 @@ interface ActionResult {
 }
 
 export async function addCoinsToUser(adminId: string, targetUserId: string, amount: number): Promise<ActionResult> {
+  // This check is client-side, but the action itself will not run in a static build.
   if (adminId !== ADMIN_USER_ID) {
     return { success: false, message: 'Acción no autorizada.' };
   }
@@ -18,39 +21,9 @@ export async function addCoinsToUser(adminId: string, targetUserId: string, amou
   if (!targetUserId || !amount || isNaN(amount) || amount <= 0) {
       return { success: false, message: 'Datos de entrada inválidos.' };
   }
-
-  try {
-    const db = await getDb();
-    const userCoinRef = db.ref(`users/${targetUserId}/coins`);
-    const adminUserRef = db.ref(`users/${adminId}`);
-
-    // Get admin's name for logging purposes
-    const adminSnapshot = await adminUserRef.once('value');
-    const adminName = adminSnapshot.child('username').val() || `Admin (${adminId})`;
-
-    const transactionResult = await userCoinRef.transaction((currentCoins) => {
-      // If user doesn't exist, this will start them at `amount`. Otherwise, it adds to existing balance.
-      return (currentCoins || 0) + amount;
-    });
-
-    if (!transactionResult.committed) {
-       return { success: false, message: 'No se pudo completar la transacción. Inténtalo de nuevo.' };
-    }
-    
-    const finalBalance = transactionResult.snapshot.val();
-
-    // Send notification without blocking the response
-    sendAdminNotification(
-        adminName,
-        targetUserId,
-        amount, 
-        finalBalance
-    ).catch(e => console.error("Discord admin notification failed in background:", e));
-
-    return { success: true, message: `Se añadieron ${amount} monedas a ${targetUserId}. Nuevo saldo: ${finalBalance}.` };
-
-  } catch (error) {
-    console.error("Error adding coins with Firebase Admin:", error);
-    return { success: false, message: 'Ocurrió un error en el servidor. Inténtalo de nuevo.' };
-  }
+  
+  // The following server-side code will not execute in a static export.
+  // We return a mocked success response for the UI.
+  console.warn("addCoinsToUser is a Server Action and will not run in a static export.");
+  return { success: false, message: 'Esta función no está disponible en la versión de demostración estática.' };
 }

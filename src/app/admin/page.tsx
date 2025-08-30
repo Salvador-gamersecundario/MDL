@@ -25,23 +25,15 @@ export default function AdminPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    const parsedAmount = parseInt(amount, 10);
     
-    try {
-        // Since we don't have a session, we pass the hardcoded admin ID
-        const result = await addCoinsToUser(ADMIN_USER_ID, targetUserId, parsedAmount);
-        if (result.success) {
-            toast({ title: "Éxito", description: result.message });
-            setTargetUserId('');
-            setAmount('');
-        } else {
-            toast({ title: "Error", description: result.message, variant: "destructive" });
-        }
-    } catch (error) {
-         toast({ title: "Error de Red", description: "No se pudo conectar con el servidor.", variant: "destructive" });
-    } finally {
-        setIsSubmitting(false);
-    }
+    // Server Actions are disabled for static export. We show a toast instead.
+    toast({
+        title: "Función no disponible",
+        description: "El panel de administración no está disponible en la versión de demostración estática.",
+        variant: "destructive",
+    });
+
+    setIsSubmitting(false);
   };
 
 
