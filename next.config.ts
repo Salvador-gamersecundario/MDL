@@ -2,7 +2,8 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  // output: 'export', // Disabled for NextAuth compatibility
+  output: 'export',
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH,
   typescript: {
     ignoreBuildErrors: true,
   },
