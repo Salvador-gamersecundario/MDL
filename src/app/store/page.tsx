@@ -10,7 +10,6 @@ import { Menu, Home as HomeIcon, Mail, ShoppingCart, LogOut, Wallet, RefreshCcw,
 import { DiscordIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { ModeToggle } from "@/components/mode-toggle";
-import { useSession, signIn, signOut } from "next-auth/react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { purchaseItem, getUserData } from "@/app/store/actions";
@@ -41,7 +40,6 @@ interface StoreItem {
 const STORE_PASSWORD = "XX-765-766-XXX";
 
 export default function Store() {
-  const { data: session, status } = useSession();
   const { toast } = useToast();
   const [isPurchasing, setIsPurchasing] = useState<string | null>(null);
   const [userCoins, setUserCoins] = useState(0);
@@ -63,34 +61,18 @@ export default function Store() {
     }
   }
 
-
+  // NOTE: User-specific functionality is disabled for static export
   const fetchUserData = useCallback(async () => {
-    if (status === 'authenticated' && session?.user?.id) {
-        setIsLoadingCoins(true);
-        try {
-            const data = await getUserData(session.user.id);
-            if (data.coins !== undefined) {
-                setUserCoins(data.coins);
-            }
-        } catch (error) {
-            console.error("Failed to fetch user data:", error);
-            toast({
-                title: "Error",
-                description: "No se pudieron cargar tus monedas.",
-                variant: "destructive",
-            });
-        } finally {
-            setIsLoadingCoins(false);
-        }
-    }
-  }, [status, session, toast]);
+    // This functionality requires a user session, which is not available in a static build.
+    console.warn("User data fetching is disabled in static build.");
+  }, []);
 
 
   useEffect(() => {
     if(isAuthenticated) {
         fetchUserData();
     }
-  }, [fetchUserData, session, isAuthenticated]);
+  }, [fetchUserData, isAuthenticated]);
 
 
   const storeItems: StoreItem[] = [
@@ -101,44 +83,15 @@ export default function Store() {
   ];
 
   const handlePurchase = async () => {
-    if (!session?.user?.id || !selectedItem) return;
+    if (!selectedItem) return;
 
-    setIsPurchasing(selectedItem.id);
-
-    try {
-      const result = await purchaseItem(
-          session.user.id, 
-          selectedItem.name, 
-          selectedItem.price,
-          session.user.name ?? undefined,
-          session.user.image ?? undefined
-      );
-
-      if (result.success) {
-        toast({
-          title: "¡Éxito!",
-          description: result.message,
-        });
-        if (result.newBalance !== undefined) {
-          setUserCoins(result.newBalance);
-        }
-      } else {
-        toast({
-          title: "Error en la compra",
-          description: result.message,
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-       toast({
-        title: "Error en la compra",
-        description: "No se pudo conectar con el servicio. Inténtalo más tarde.",
+    toast({
+        title: "Función no disponible",
+        description: "El inicio de sesión y las compras no están disponibles en esta versión de demostración.",
         variant: "destructive",
-      });
-    }
+    });
 
-    setIsPurchasing(null);
-    setSelectedItem(null); 
+    setSelectedItem(null);
     setHasAgreed(false);
   };
 
@@ -266,56 +219,22 @@ export default function Store() {
             ) : (
                 <>
                     <div className="mx-auto w-full max-w-2xl py-12 space-y-4">
-                    {status !== 'loading' && (
                         <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                            <DiscordIcon className="h-6 w-6" />
-                            {status === 'authenticated' ? 'Perfil Conectado' : 'Conectar con Discord'}
-                            </CardTitle>
-                            <CardDescription>
-                            {status === 'authenticated' ? 'Gestiona tu sesión y revisa tus monedas.' : 'Conecta tu cuenta para comprar y ver tus monedas.'}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {status === 'authenticated' && session ? (
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                    <Avatar>
-                                    <AvatarImage src={session.user?.image || ''} alt={session.user?.name || 'Avatar'} />
-                                    <AvatarFallback>{session.user?.name?.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="text-left">
-                                    <p className="font-semibold">{session.user?.name}</p>
-                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                        <Wallet className="h-4 w-4 text-primary" />
-                                        {isLoadingCoins ? (
-                                            <span>Cargando...</span>
-                                        ) : (
-                                            <span>{userCoins.toLocaleString()} monedas</span>
-                                        )}
-                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={fetchUserData} disabled={isLoadingCoins}>
-                                            <RefreshCcw className={`h-4 w-4 ${isLoadingCoins ? 'animate-spin' : ''}`} />
-                                        </Button>
-                                    </div>
-                                    </div>
-                                </div>
-                                <Button variant="outline" onClick={() => { signOut() }}>
-                                    <LogOut className="mr-2 h-4 w-4" />
-                                    Desconectar
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <DiscordIcon className="h-6 w-6" />
+                                    Inicio de Sesión Deshabilitado
+                                </CardTitle>
+                                <CardDescription>
+                                    El inicio de sesión con Discord y la gestión de monedas no están disponibles en la versión de demostración.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Button className="w-full" disabled>
+                                    Conectar con Discord
                                 </Button>
-                                </div>
-                            ) : (
-                            <Button 
-                                className="w-full transform transition-transform duration-300 hover:scale-105"
-                                onClick={() => { signIn('discord') }}
-                            >
-                                Conectar con Discord
-                            </Button>
-                            )}
-                        </CardContent>
+                            </CardContent>
                         </Card>
-                    )}
                     </div>
                     <AlertDialog onOpenChange={(open) => { if (!open) { setHasAgreed(false); setSelectedItem(null); }}}>
                         <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-4 pt-12">
@@ -336,9 +255,8 @@ export default function Store() {
                                 <Button 
                                     className="w-full transform transition-transform duration-300 hover:scale-105"
                                     onClick={() => setSelectedItem(item)}
-                                    disabled={status !== 'authenticated' || isPurchasing !== null}
                                     >
-                                    {isPurchasing === item.id ? 'Procesando...' : (status === 'authenticated' ? 'Comprar' : 'Conéctate para comprar')}
+                                    Comprar
                                 </Button>
                                 </AlertDialogTrigger>
                             </CardContent>
@@ -398,6 +316,3 @@ export default function Store() {
     </div>
   );
 }
-
-
-    
